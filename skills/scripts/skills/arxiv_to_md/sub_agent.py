@@ -17,6 +17,11 @@ Arguments:
 
 import argparse
 import sys
+from pathlib import Path
+
+# __file__ resolves to skills/scripts/skills/arxiv_to_md/sub_agent.py (ref: DL-001)
+# .parent.parent.parent traverses: skills/arxiv_to_md/sub_agent.py -> skills/ -> scripts/
+SCRIPTS_DIR = str(Path(__file__).resolve().parent.parent.parent)
 
 from skills.lib.workflow.ast import W, XMLRenderer, render
 from skills.lib.workflow.ast.nodes import (
@@ -25,7 +30,6 @@ from skills.lib.workflow.ast.nodes import (
 from skills.lib.workflow.ast.renderer import (
     render_step_header, render_current_action, render_invoke_after,
 )
-
 
 MODULE_PATH = "skills.arxiv_to_md.sub_agent"
 
@@ -96,7 +100,11 @@ PHASES = {
             "```bash",
             "python3 << 'EOF'",
             "import sys",
-            "sys.path.insert(0, '/Users/lmergen/.claude/skills/scripts')",
+            # String concat: f-string would evaluate {result} placeholder at module load, causing NameError (ref: DL-004)
+            # {result} must remain literal Python code within the template string for sub-agent execution
+            # os.getcwd() approach rejected: sub-agent Bash cwd may differ from invoke working-dir, causing fragile runtime failure (ref: DL-002)
+            # os.path.expanduser('~/.claude/skills/scripts') rejected: this repo lives at Documents/GitHub/claude-config/.claude, not ~/.claude (ref: DL-003)
+            "sys.path.insert(0, '" + SCRIPTS_DIR + "')",
             "from skills.arxiv_to_md.tex_utils import preprocess_tex",
             "",
             "result = preprocess_tex('<source_dir>/<main_tex>')",
