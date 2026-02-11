@@ -104,7 +104,7 @@ PHASES = {
             # {result} must remain literal Python code within the template string for sub-agent execution
             # os.getcwd() approach rejected: sub-agent Bash cwd may differ from invoke working-dir, causing fragile runtime failure (ref: DL-002)
             # os.path.expanduser('~/.claude/skills/scripts') rejected: this repo lives at Documents/GitHub/claude-config/.claude, not ~/.claude (ref: DL-003)
-            "sys.path.insert(0, '" + SCRIPTS_DIR + "')",
+            "sys.path.insert(0, " + repr(SCRIPTS_DIR) + ")",
             "from skills.arxiv_to_md.tex_utils import preprocess_tex",
             "",
             "result = preprocess_tex('<source_dir>/<main_tex>')",
